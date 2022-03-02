@@ -1,0 +1,340 @@
+Spark is an open source software developed by UC Berkeley RAD lab in 2009 and later donated to Apache Software Foundation. In February 2014.
+Spark is a big data solution, proven to be easier and faster than Hadoop MapReduce and can run applications parallelly on the distributed cluster (multiple nodes).
+Spark is written in Scala and later on due to its industry adaptation it’s API PySpark released for Python using Py4J. 
+PySpark is a tool created by Apache Spark Community for using Python with Spark.
+
+Topics:
+
+Package: org.apache.spark
+
+Apache Spark Features:-
+Real time processing framework
+In-memory computation
+Parallel distributed processing
+Can be used with many cluster managers (Spark, Yarn, Mesos e.t.c)
+Polyglot(Spark provide high level API's to wrok with spark in Python , R, Java, Scala)
+Cache & persistence
+
+Advantage:
+100X times faster than the original traditinal processing system.
+10X times faster in secondary memory.
+
+Architecture:
+Driver program(Spark context)--Cluster Manager--worker nodes(Executor(cache, task))
+When user submit its spark application code, driver converts actions and transformations ito logical DHE -> Physical execution plan with many stages ->Physical execution units(Tasks) -> Then these tasks are bundled and sent to cluster
+
+Apache spark Eco-system
+R, Python, Scala, java---Apache spark core API(Resposible for basic i/o function , scheduling and monitering)--Spark SQL, Spark streaming, Spark MlLib, Graphx
+
+Cluster Manager Types
+Standalone – a simple cluster manager included with Spark that makes it easy to set up a cluster.
+Apache Mesos – Mesons is a Cluster manager that can also run Hadoop MapReduce and PySpark applications.
+Hadoop YARN – the resource manager in Hadoop 2. This is mostly used, cluster manager.
+Kubernetes – an open-source system for automating deployment, scaling, and management of containerized applications.
+local – which is not really a cluster manager but still I wanted to mention as we use “local” for master() in order to run Spark on your laptop/computer.
+
+
+Modules:
+PySpark RDD (pyspark.RDD)
+PySpark DataFrame and SQL (pyspark.sql)
+PySpark Streaming (pyspark.streaming)
+PySpark MLib (pyspark.ml, pyspark.mllib)
+PySpark GraphFrames (GraphFrames)
+PySpark Resource (pyspark.resource) It’s new in PySpark 3.0
+
+
+Spark Web UI(http://localhost:4040/):
+Apache Spark provides a suite of Web UIs (Jobs, Stages, Tasks, Storage, Environment, Executors, and SQL) to monitor the status of your Spark application.
+
+Spark UI is separated into below tabs:-
+	1. Spark Jobs
+		Scheduling mode(Standalone , YARN, Mesos)
+		Number of spark jobs(Spark jobs are equal to the number of actions in the application and each Spark job should have at least one Stage)
+		Number of Stages
+	2. Stages
+		Note:
+		1. The number of tasks you could see in each stage is the number of partitions that spark is going to work on and each task inside a stage is the same 		work that will be done by spark but on a different partition of data.
+		2. Details of stage showcase Directed Acyclic Graph (DAG) of this stage, where vertices represent the RDDs or DataFrame and edges represent an operation to be applied.
+	3. Tasks
+	4. Storage
+		The Storage tab displays the persisted RDDs and DataFrames, if any, in the application.
+	5. Environment
+		Runtime Information:	simply contains the runtime properties like versions of Java and Scala.
+		Spark Properties: 	lists the application properties like ‘spark.app.name’ and ‘spark.driver.memory’.
+		Hadoop Properties: 	displays properties relative to Hadoop and YARN. Note: Properties like ‘spark.hadoop’ are shown not in this part but in ‘Spark 						Properties’.
+		System Properties: 	hows more details about the JVM.
+		Classpath Entries: 	lists the classes loaded from different sources, which is very useful to resolve class conflicts.
+	6. Executors
+		The Executors tab displays summary information about the executors that were created for the application, including memory and disk usage and task and 		shuffle information. The Storage Memory column shows the amount of memory used and reserved for caching data.
+	7. SQL
+		If the application executes Spark SQL queries then the SQL tab displays information, such as the duration, Spark jobs, and physical and logical plans 		for the queries.
+
+
+Spark History Server:Spark History servers, keep a log of all Spark application you submit by spark-submit, spark-shell.
+Start the server :spark-class.cmd org.apache.spark.deploy.history.HistoryServer
+
+1. pyspark
+	Note:
+	Py4j library help us to achieve the functionality in pyspark.
+	Py4J is a Java library that is integrated within PySpark and allows python to dynamically interact with JVM objects, hence to run PySpark you also need Java 	to be installed along with Python, and Apache Spark.
+
+6. Pyspark SparkConf(SparkConf help us to setup confriguration to run a application locally or on cluster)
+	Notes:
+	1.
+	Ex:
+		from pyspark.conf import SparkConf  
+		conf= SparkConf().setAppName('PySpark Demo App').setMaster('local[2]') #Here .setAppName(), .setMaster() are static method(Methods take same 											argument) and this conf object can be used in creation of SparkContext and SparkSession object. 
+
+
+2. Spark session(Since Spark 2.0, SparkSession has become an entry point to Spark to programaticaly create RDD, DataFrame, and Dataset. Prior to 2.0, SparkContext used to be an entry point):
+	Uses: create Dataframe
+	Note:
+	1. SparkSession internally creates SparkConfig and SparkContext with the configuration provided with SparkSession(Here we can pass the SparkConf object and configure the properties).
+	2.  You can create multiple SparkSession objects but only one SparkContext per JVM.
+	Ex: 	from pyspark.sql import SparkSession
+		spark= SpakSession.builder().config(config).master("local[*]").AppName("Could be Anything").getorCreate().
+		spark.sparkContext.getConf().getAll()#Use to get all the configuration properties of spark or we can use get() method for specific property
+		spark.sparkContext.getConf().get("spark.driver.host")
+
+
+	3.  It is a combined class for all different contexts we used to have prior to 2.0 (SQLContext and HiveContext e.t.c) release hence Spark Session can be used in replace with SQLContext, HiveContext and other contexts defined prior to 2.0.
+		 
+Spark Session also includes all the APIs available in different contexts –
+
+Spark Context,
+SQL Context,
+Streaming Context,
+Hive Context.
+
+	4. SparkSession internally creates SparkConfig and SparkContext with the configuration provided with SparkSession.
+	5. In realtime application, you will pass master from spark-submit instead of hardcoding on Spark application.
+
+	Methods:
+	1. spark.version#Returns Spark version where your application is running.
+	2. builder() – builder() is used to create a new SparkSession, this return SparkSession.Builder
+	3. createDataFrame() – This creates a DataFrame from a collection and an RDD
+	4. emptyDataFrame() – Creates an empty DataFrame.
+	5. getActiveSession() – returns an active Spark session.
+	6. read() – Returns an instance of DataFrameReader class, this is used to read records from csv, parquet, avro and more file formats into DataFrame.
+	7. readStream() – Returns an instance of DataStreamReader class, this is used to read streaming data. that can be used to read streaming data into DataFrame.
+	8. sparkContext() – Returns a SparkContext.
+	9. sql – Returns a DataFrame after executing the SQL mentioned.
+	10. sqlContext() – Returns SQLContext.
+	11. stop() – Stop the current SparkContext.
+	12. udf() – Creates a Spark UDF to use it on DataFrame, Dataset and SQL.
+		
+
+	
+
+11. Spark Context(Since spark1.X, SparkContext was the entry point for spark appliaction till Spark 2.X as then SparkSession was introduce which is then decided as entry point for spark spplication)
+	Notes:
+	1. we can create one SparkContext per JVM.
+	Uses: Create RDD, Accumalator, Broadcast
+	Ex:
+		from pyspark.sql import SparkSession
+		context= spark.sparkContext.getorCreate() 
+
+	Note;
+	1. At any given time only one SparkContext instance should be active per JVM. 
+	2.
+
+2. RDD(Resilient Distributed Dataset) 
+	Note:
+	1. RDD Lineage is also known as the RDD operator graph or RDD dependency graph.
+	2. RDD is schema-less without column names and data type(structured and un-structured data).
+	3. RDD cann have a name and it's unique identifier.
+
+	We can create RDD from follwoing ways.
+	1. Parallelize
+	2. From another RDD(Using transformation operation on existing RDD)
+	3. From external system(Text file, HDFS etc)
+	4. Dataframe
+
+	Features of RDD:
+	1. In memory computation
+	2. Lazy evaluation
+	3. Fault tolerant
+	4. Immutability
+	5. Partioning(RDD is divided into logical sub parts): Can be changeable
+	6. Persistance(RDD can be reused and can choose the storage stratgy)
+	7. Coarsed gained operations(groupBy, Map etc): Any operation applied on RDD is coarse gained.
+
+
+Repartition and Coalesce:
+PySpark provides two ways to repartition; first using repartition() method which shuffles data from all nodes also called full shuffle and second coalesce() method which shuffle data from minimum nodes, for examples if you have data in 4 partitions and doing coalesce(2) moves data from just 2 nodes. 
+Note: repartition() or coalesce() methods also returns a new RDD.
+
+Calling groupBy(), union(), join() and similar functions on DataFrame results in shuffling data between multiple executors and even machines and finally repartitions data into 200 partitions by default. PySpark default defines shuffling partition to 200 using spark.sql.shuffle.partitions configuration.
+spark.conf.set("spark.sql.shuffle.partitions", "500")
+
+
+PySpark Cache and Persist are optimization techniques to improve the performance of the RDD jobs that are iterative and interactive
+PySpark RDD cache() method by default saves RDD computation to storage level `MEMORY_ONLY` meaning it will store the data in the JVM heap as unserialized objects.
+
+import pyspark
+dfPersist = rdd.persist(pyspark.StorageLevel.MEMORY_ONLY)
+dfPersist.show(false)
+
+
+4. RDD Operations:	
+		Normal:-
+			1. Transaformation 	Ex:flatMap(), map(), reduceByKey(), filter(), sortByKey()
+			Types:	1. Narrow(There will not be any data movement b/w partitions to execute narrow transformation) 
+					Ex:  	 map(), mapPartition(), flatMap(), filter(), union()
+				2. Wide(There will be data movements between partitions to execute wider transformations ) 
+				Note: When compared to Narrow transformations, wider transformations are expensive operations due to shuffling.	
+			
+			2. Action return the values from an RDD to a driver program. 
+					 Ex: count(), collect(), first(), max(), reduce()
+					Ex: 	 groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
+	
+		Pair RDD Function(RDD with keyvalue pair):-
+			1. Transaformation
+			2. Action
+
+
+
+
+5. Dataframe(DataFrame is a distributed collection of data organized into named columns. It is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood. DataFrames can be constructed from a wide array of sources such as structured data files, tables in Hive, external databases, or existing RDDs)
+
+	Note:
+	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in		PySpark executes in parallel on all machines whereas Panda Dataframe stores and operates on a single machine.
+	2. Datframe can be created from follwoing ways.
+		RDD, Python list, External sources(DataFrame has a rich set of API which supports reading and writing several file formats)
+	3. Process structured, semi-structured  and unstructured data
+	
+	Example:
+		df.show()#By-Default it will show only top 20 rows or we can pass the integer(No. of rows from dataframe) value in parenthesis.
+		df.printschema()
+	
+	Features:
+	1. Immutability
+	2. Lazy Evaluation
+	3. Distributed storage
+	4. Fault tolrance
+	5. Inbuild-optimization when using DataFrames
+
+
+6. PySpark SQL:
+	Pre-Requesties:Need a dataframe on which we have to query the data.
+
+	Hive v/s Spark SQl
+	Hive uses map reduce which lags in performance with small & medium sized datasets.
+	No resume capability.
+	Hive can't drop encrypted database. 
+
+
+	Apache spark SQL advantage over hive.
+	1. Faster
+	2. No migration hurdle(we can use metastore service of pre-written hive quesries to run it using spark sql, No need to transfering hive queries to spark SQL )	
+	3. Real time querying
+
+	Features:
+	1. Supports ANSI SQL
+	2. support structure & semi-sturctured data
+	3. support varioud data fromats
+	4. SQl queries can be converted into RDDs for transformation.
+	5. Standard JDBC/ODBC connectivity
+	6. Let's you define user defined function 
+
+	API's
+	1. Datasource API
+	2. DataFrame API
+	3. Interpretation and Optimization(It handle the functional programming part of SQL)
+	4. SQl Service API
+
+	 
+	Note:
+	1. In order to use RAW SQL. Create a temporary view on DataFrame and Once it is created it will be accessible throughout the spark session and will get 		destory with SparkContext.
+	Example:
+	df.createOrReplaceTempView("PERSON_DATA")#Here df is datframe on which we want to use ANSI SQL and we have created a PERSON_DATA named table that we will be 							  using in our query.
+	df2 = spark.sql("SELECT * from PERSON_DATA")#It will create another dataframe as df2.
+	df2.printSchema()
+	df2.show()	
+
+
+7. Spark streaming(Technique of transfering data so that it can be processed as a staedy and contunous stream ): 
+
+	Features:
+	1. Scaling
+	2. Speed(low latency)
+	3. Fault tolrent
+	4. Integration(with real time and batch time processing)
+	5. Busines analytics(Used to track behaviour customer)
+
+Note:
+The fundamental stream unit is Dstream(Discretized stream) which is basically a series of of RDD's to process the real-time data.
+			
+
+7. PySpark GraphFrames(PySpark GraphFrames are introduced in Spark 3.0 version to support Graphs on DataFrame’s. Prior to 3.0, Spark has GraphX library which ideally runs on RDD and loses all Data Frame capabilities.)
+	Note:
+	1. GraphFrames is a package for Apache Spark which provides DataFrame-based Graphs. It provides high-level APIs in Scala, Java, and Python. It aims to provide both the functionality of GraphX and extended functionality taking advantage of Spark DataFrames. This extended functionality includes motif finding, DataFrame-based serialization, and highly expressive graph queries.
+	2. GraphX works on RDDs where as GraphFrames works with DataFrames.
+	
+
+7. Batch Loads/ Processing types:
+	1. Shell mode(devlopment or adHoc queries)
+	1. Batch 
+	2. Real time(Streaming)
+
+5. Shared variables in Spark	1. Broadcast	(Broadcast variables are read-only shared variables that are cached and available on all nodes in a cluster in-order to 						access or use by the tasks. Instead of sending this data along with every task, spark distributes broadcast variables to the machine using efficient broadcast algorithms to reduce communication costs)
+
+				Use case
+				Let me explain with an example, assume you are getting a two-letter country state code in a file and you wanted to transform it to full 				state name, (for example CA to California, NY to New York e.t.c) by doing a lookup to reference mapping. In some instances, this data 				could be large and you may have many such lookups (like zip code).
+
+				Instead of distributing this information along with each task over the network (overhead and time consuming), we can use the broadcast 				variable to cache this lookup info on each machine and tasks use this cached info while executing the transformations.	
+
+				The broadcasted data is cache in serialized format and deserialized before executing each task.			
+	
+				broadcastVar = sc.broadcast([0, 1, 2, 3])
+				broadcastVar.value
+				
+				2. Accumaltor	Accumulator variables are used for aggregating the information through associative and commutative operations.
+				For example, you can use an accumulator for a sum operation or counters (in MapReduce). 
+
+				PySpark by default supports creating an accumulator of any numeric type and provides the capability to add custom accumulator types. 
+Programmers can create following accumulators
+
+named accumulators
+unnamed accumulators
+When you create a named accumulator, you can see them on PySpark web UI under the “Accumulator” tab. On this tab, you will see two tables; the first table “accumulable” – consists of all named accumulator variables and their values. And on the second table “Tasks” – value for each accumulator modified by a task.
+
+Where as unnamed accumulators are not shows on PySpark web UI, For all practical purposes it is suggestable to use named accumulators.
+
+PySpark Accumulators are shared variables that can be updated by executors and propagates back to driver program. These variables are used to add sum or counts and final results can be accessed only by driver program.		
+
+		accum = sc.longAccumulator("SumAccumulator")
+sc.parallelize([1, 2, 3]).foreach(lambda x: accum.add(x))
+
+				note:
+				Broadcast variables (read-only shared variable)
+				Accumulator variables (updatable shared variables)
+
+	
+7. Pyspark SparkFiles
+		Upload file using sc.addFile and get the path on a worker using SparkFiles.get. Thus, SparkFiles resolve the paths to files added through SparkContext.addFile().
+
+8. PySpark - StorageLevel(Here we can set the configuration on how should a RDD be stored)
+		StorageLevel decides whether RDD should be stored in the memory or should it be stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions.
+
+9. PySpark - MLlib
+
+10. PySpark - Serializers(Serialization is used for performance tuning on Apache Spark,All data that is sent over the network or written to the disk or persisted in the memory should be serialized.)
+	MarshalSerializer
+	Serializes objects using Python’s Marshal Serializer. This serializer is faster than PickleSerializer, but supports fewer datatypes.
+	
+	PickleSerializer
+	Serializes objects using Python’s Pickle Serializer. This serializer supports nearly any Python object, but may not be as fast as more specialized serializers.
+
+Drawbacks of Hive
+It cannot resume processing, which means if the execution fails in the middle of a workflow, you cannot resume from where it got stuck.
+We cannot drop the encrypted databases in cascade when the trash is enabled. It leads to the execution error. For dropping such type of database, users have to use the Purge option.
+The ad-hoc queries are executed using MapReduce, which is launched by the Hive but when we analyze the medium size database, it delays the performance.
+Hive doesn't support the update or delete operation.
+It is limited to the subquery support.
+
+
+
+Question:
+1. What is spark?- Spark is open source ,Scalable , Parllel ,In-memory enviornment of analytics engine.
+2. Why dataset is faster than the dataframe ?- b/e dataset has implemented a encoder mechanism
