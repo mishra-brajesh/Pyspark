@@ -1,11 +1,7 @@
-Spark is an open source software developed by UC Berkeley RAD lab in 2009 and later donated to Apache Software Foundation. In February 2014.
+Spark is an open source software developed by UC Berkeley RAD lab in 2009 and later donated to Apache Software Foundation(February 2014).
 Spark is a big data solution, proven to be easier and faster than Hadoop MapReduce and can run applications parallelly on the distributed cluster (multiple nodes).
 Spark is written in Scala and later on due to its industry adaptation it’s API PySpark released for Python using Py4J. 
-PySpark is a tool created by Apache Spark Community for using Python with Spark.
 
-Topics:
-
-Package: org.apache.spark
 
 Apache Spark Features:-
 Real time processing framework
@@ -71,72 +67,80 @@ Spark UI is separated into below tabs:-
 
 
 Spark History Server:Spark History servers, keep a log of all Spark application you submit by spark-submit, spark-shell.
-Start the server :spark-class.cmd org.apache.spark.deploy.history.HistoryServer
 
-1. pyspark
-	Note:
-	Py4j library help us to achieve the functionality in pyspark.
-	Py4J is a Java library that is integrated within PySpark and allows python to dynamically interact with JVM objects, hence to run PySpark you also need Java 	to be installed along with Python, and Apache Spark.
 
-6. Pyspark SparkConf(SparkConf help us to setup confriguration to run a application locally or on cluster)
+Note:
+1. Py4J is a Java library that is integrated within PySpark and allows python to dynamically interact with JVM objects, hence to run PySpark you also need 		Java to be installed along with Python, and Apache Spark.
+
+
+
+7. Processing types:
+	1. Shell mode(devlopment or adHoc queries)
+	1. Batch 
+	2. Real time(Streaming)
+
+
+
+2. Pyspark SparkConf(SparkConf help us to setup confriguration to run a application locally or on cluster)
 	Notes:
-	1.
+	
+	
+	
 	Ex:
+		from pyspark import SparkConf
 		from pyspark.conf import SparkConf  
-		conf= SparkConf().setAppName('PySpark Demo App').setMaster('local[2]') #Here .setAppName(), .setMaster() are static method(Methods take same 											argument) and this conf object can be used in creation of SparkContext and SparkSession object. 
+		conf= SparkConf().setAppName('PySpark Demo App').setMaster('local[2]') 
+		#Here .setAppName(), .setMaster() are static method(Methods take same argument) and this conf object can be used in creation of SparkContext and 		 sparkSession object. 
 
+	
+2. Spark Context
+	Notes:
+	1. we can have multiple SparkSession object but only one SparkContext per JVM.
+	Uses: Create RDD, Accumalator, Broadcast
+	Ex:
+		from pyspark import SparkContext
+		sc=SparkContext.getOrCreate(conf)
+		
+		from pyspark.sql import SparkSession
+		context= spark.sparkContext.getorCreate() 
 
-2. Spark session(Since Spark 2.0, SparkSession has become an entry point to Spark to programaticaly create RDD, DataFrame, and Dataset. Prior to 2.0, SparkContext used to be an entry point):
-	Uses: create Dataframe
+	
+
+2. Spark session(Since Spark 2.0, SparkSession has become an entry point to Spark to programaticaly create RDD, DataFrame, and Dataset(Available in scala only) ):
+	Uses:
+		1. Dataframe, 
+		2. For querying the dataframe(spark.sql())
 	Note:
-	1. SparkSession internally creates SparkConfig and SparkContext with the configuration provided with SparkSession(Here we can pass the SparkConf object and configure the properties).
+	1. SparkSession internally creates SparkConfig and SparkContext with the configuration provided with SparkSession(Here we can pass the SparkConf object to 		configure the properties).
 	2.  You can create multiple SparkSession objects but only one SparkContext per JVM.
-	Ex: 	from pyspark.sql import SparkSession
-		spark= SpakSession.builder().config(config).master("local[*]").AppName("Could be Anything").getorCreate().
+	3. In realtime application, you will pass master from spark-submit instead of hardcoding on Spark application.
+
+	
+	Ex: 	from pyspark.sql import SparkSession, SQLContext, HiveContext
+		spark= SpakSession.builder.config(config).master("local[*]").AppName("Could be Anything").getorCreate()
 		spark.sparkContext.getConf().getAll()#Use to get all the configuration properties of spark or we can use get() method for specific property
 		spark.sparkContext.getConf().get("spark.driver.host")
 
 
-	3.  It is a combined class for all different contexts we used to have prior to 2.0 (SQLContext and HiveContext e.t.c) release hence Spark Session can be used in replace with SQLContext, HiveContext and other contexts defined prior to 2.0.
-		 
-Spark Session also includes all the APIs available in different contexts –
-
-Spark Context,
-SQL Context,
-Streaming Context,
-Hive Context.
-
-	4. SparkSession internally creates SparkConfig and SparkContext with the configuration provided with SparkSession.
-	5. In realtime application, you will pass master from spark-submit instead of hardcoding on Spark application.
-
+	
 	Methods:
 	1. spark.version#Returns Spark version where your application is running.
-	2. builder() – builder() is used to create a new SparkSession, this return SparkSession.Builder
+	2. builder –is used to create a new SparkSession, this return SparkSession.Builder
 	3. createDataFrame() – This creates a DataFrame from a collection and an RDD
 	4. emptyDataFrame() – Creates an empty DataFrame.
 	5. getActiveSession() – returns an active Spark session.
 	6. read() – Returns an instance of DataFrameReader class, this is used to read records from csv, parquet, avro and more file formats into DataFrame.
-	7. readStream() – Returns an instance of DataStreamReader class, this is used to read streaming data. that can be used to read streaming data into DataFrame.
+	7. readStream() – Returns an instance of DataStreamReader class, this is used to read streaming data. that can be used to read streaming data into 				DataFrame.
 	8. sparkContext() – Returns a SparkContext.
-	9. sql – Returns a DataFrame after executing the SQL mentioned.
-	10. sqlContext() – Returns SQLContext.
+	9. sqlContext() – Returns SQLContext.
+	10. sql – Returns a DataFrame after executing the SQL mentioned.
 	11. stop() – Stop the current SparkContext.
 	12. udf() – Creates a Spark UDF to use it on DataFrame, Dataset and SQL.
 		
 
-	
 
-11. Spark Context(Since spark1.X, SparkContext was the entry point for spark appliaction till Spark 2.X as then SparkSession was introduce which is then decided as entry point for spark spplication)
-	Notes:
-	1. we can create one SparkContext per JVM.
-	Uses: Create RDD, Accumalator, Broadcast
-	Ex:
-		from pyspark.sql import SparkSession
-		context= spark.sparkContext.getorCreate() 
+		
 
-	Note;
-	1. At any given time only one SparkContext instance should be active per JVM. 
-	2.
 
 2. RDD(Resilient Distributed Dataset) 
 	Note:
@@ -145,10 +149,10 @@ Hive Context.
 	3. RDD cann have a name and it's unique identifier.
 
 	We can create RDD from follwoing ways.
-	1. Parallelize
+	1. Parallelize(sc.parallelize())
 	2. From another RDD(Using transformation operation on existing RDD)
 	3. From external system(Text file, HDFS etc)
-	4. Dataframe
+	4. Dataframe(df.rdd)
 
 	Features of RDD:
 	1. In memory computation
@@ -160,48 +164,63 @@ Hive Context.
 	7. Coarsed gained operations(groupBy, Map etc): Any operation applied on RDD is coarse gained.
 
 
-Repartition and Coalesce:
-PySpark provides two ways to repartition; first using repartition() method which shuffles data from all nodes also called full shuffle and second coalesce() method which shuffle data from minimum nodes, for examples if you have data in 4 partitions and doing coalesce(2) moves data from just 2 nodes. 
-Note: repartition() or coalesce() methods also returns a new RDD.
+
+3. RDD Operations:	
+		Normal:-
+			1. Transaformation 	Ex:flatMap(), map(), reduceByKey(), filter(), sortByKey()
+			
+			Types:	1. Narrow(There will not be any data movement b/w partitions to execute narrow transformation) 
+					Ex:  	 map(), mapPartition(), flatMap(), filter(), union()
+				
+				2. Wide(There will be data movements between partitions to execute wider transformations ) 
+				Note: When compared to Narrow transformations, wider transformations are expensive operations due to shuffling.	
+				
+					Ex: groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
+			
+			2. Action return the values from an RDD to a driver program. 
+					Ex: count(), collect(), first(), max(), reduce()
+	
+		Pair RDD Function(RDD with keyvalue pair):-
+	
+			1. Transaformation
+			2. Action
+
+			Ex:
+			
+3. Repartition and Coalesce: We can change the number of partition of RDD at run time using rdd.repartition()- Suffle data from all the nodes, rdd.coalesce()- Suffle data from min number of node.
+
+Note: 
+	1. repartition() or coalesce() methods also returns a new RDD.
 
 Calling groupBy(), union(), join() and similar functions on DataFrame results in shuffling data between multiple executors and even machines and finally repartitions data into 200 partitions by default. PySpark default defines shuffling partition to 200 using spark.sql.shuffle.partitions configuration.
 spark.conf.set("spark.sql.shuffle.partitions", "500")
 
+Ex:	rdd.repartition(2), rdd.coalesce(2)
 
-PySpark Cache and Persist are optimization techniques to improve the performance of the RDD jobs that are iterative and interactive
+
+
+4. PySpark Cache and Persist are optimization techniques to improve the performance of the RDD jobs that are iterative and interactive.
+
+   Notes:
+   1. StorageLevel(Here we can set the configuration on how should a RDD be stored. StorageLevel decides whether RDD should be stored in the memory or should it be    stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions).
+		
+
 PySpark RDD cache() method by default saves RDD computation to storage level `MEMORY_ONLY` meaning it will store the data in the JVM heap as unserialized objects.
 
-import pyspark
-dfPersist = rdd.persist(pyspark.StorageLevel.MEMORY_ONLY)
-dfPersist.show(false)
+Ex:
+	import pyspark
+	rddPersist = rdd.persist(pyspark.StorageLevel.MEMORY_ONLY)
+	rddPersist.show(false)
 
 
-4. RDD Operations:	
-		Normal:-
-			1. Transaformation 	Ex:flatMap(), map(), reduceByKey(), filter(), sortByKey()
-			Types:	1. Narrow(There will not be any data movement b/w partitions to execute narrow transformation) 
-					Ex:  	 map(), mapPartition(), flatMap(), filter(), union()
-				2. Wide(There will be data movements between partitions to execute wider transformations ) 
-				Note: When compared to Narrow transformations, wider transformations are expensive operations due to shuffling.	
-			
-			2. Action return the values from an RDD to a driver program. 
-					 Ex: count(), collect(), first(), max(), reduce()
-					Ex: 	 groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
-	
-		Pair RDD Function(RDD with keyvalue pair):-
-			1. Transaformation
-			2. Action
-
-
-
-
-5. Dataframe(DataFrame is a distributed collection of data organized into named columns. It is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood. DataFrames can be constructed from a wide array of sources such as structured data files, tables in Hive, external databases, or existing RDDs)
+5. Dataframe(DataFrame is a distributed collection of data organized into named columns(With inbulit richer optimizations)
 
 	Note:
-	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in		PySpark executes in parallel on all machines whereas Panda Dataframe stores and operates on a single machine.
+	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in		PySpark executes in parallel on all machines.
 	2. Datframe can be created from follwoing ways.
 		RDD, Python list, External sources(DataFrame has a rich set of API which supports reading and writing several file formats)
-	3. Process structured, semi-structured  and unstructured data
+	3. Process structured, semi-structured  and unstructured data.
+	4. DataFrames can be constructed from a wide array of sources such as structured data files, tables in Hive, external databases, or existing RDDs
 	
 	Example:
 		df.show()#By-Default it will show only top 20 rows or we can pass the integer(No. of rows from dataframe) value in parenthesis.
@@ -246,12 +265,13 @@ dfPersist.show(false)
 	 
 	Note:
 	1. In order to use RAW SQL. Create a temporary view on DataFrame and Once it is created it will be accessible throughout the spark session and will get 		destory with SparkContext.
-	Example:
-	df.createOrReplaceTempView("PERSON_DATA")#Here df is datframe on which we want to use ANSI SQL and we have created a PERSON_DATA named table that we will be 							  using in our query.
+	
+Example:
+	df.createOrReplaceTempView("PERSON_DATA")#Here df is datframe on which we want to use ANSI SQL and we have created a PERSON_DATA named temp view that we 						   will be using in our query.
 	df2 = spark.sql("SELECT * from PERSON_DATA")#It will create another dataframe as df2.
 	df2.printSchema()
 	df2.show()	
-
+	
 
 7. Spark streaming(Technique of transfering data so that it can be processed as a staedy and contunous stream ): 
 
@@ -272,59 +292,64 @@ The fundamental stream unit is Dstream(Discretized stream) which is basically a 
 	2. GraphX works on RDDs where as GraphFrames works with DataFrames.
 	
 
-7. Batch Loads/ Processing types:
-	1. Shell mode(devlopment or adHoc queries)
-	1. Batch 
-	2. Real time(Streaming)
 
-5. Shared variables in Spark	1. Broadcast	(Broadcast variables are read-only shared variables that are cached and available on all nodes in a cluster in-order to 						access or use by the tasks. Instead of sending this data along with every task, spark distributes broadcast variables to the machine using efficient broadcast algorithms to reduce communication costs)
 
-				Use case
-				Let me explain with an example, assume you are getting a two-letter country state code in a file and you wanted to transform it to full 				state name, (for example CA to California, NY to New York e.t.c) by doing a lookup to reference mapping. In some instances, this data 				could be large and you may have many such lookups (like zip code).
 
-				Instead of distributing this information along with each task over the network (overhead and time consuming), we can use the broadcast 				variable to cache this lookup info on each machine and tasks use this cached info while executing the transformations.	
+5. Shared variables in Spark	
+
+
+1. Broadcast(read-only shared variable) (Broadcast variables are read-only shared variables that are cached and available on all nodes in a cluster in-order to access or use by the tasks. Instead of sending this data along with every task, spark distributes broadcast variables to the machine using efficient broadcast algorithms to reduce communication costs)
+
+	Use case
+		
+	1.Assume you are getting a two-letter country state code in a file and you wanted to transform it to full state name, (for example CA to California, NY to 	     New York e.t.c) by doing a lookup to reference mapping. In some instances, this data could be large and you may have many such lookups (like zip code).
+	  Instead of distributing this information along with each task over the network (overhead and time consuming), we can use the broadcast variable to cache 	     this lookup info on each machine and tasks use this cached info while executing the transformations.	
 
 				The broadcasted data is cache in serialized format and deserialized before executing each task.			
 	
 				broadcastVar = sc.broadcast([0, 1, 2, 3])
 				broadcastVar.value
 				
-				2. Accumaltor	Accumulator variables are used for aggregating the information through associative and commutative operations.
-				For example, you can use an accumulator for a sum operation or counters (in MapReduce). 
+2. Accumaltor(Updatable shared variables): Accumulator variables are used for aggregating the information through associative and commutative operations.
+	
+	Types:
+		1. Named accumulators(Can be visible in spark web-UI Accumaltor tab, On this tab we can see two tables) 
+						-First table “accumulable” – consists of all named accumulator variables and their values. 
+						-Second table “Tasks” – value for each accumulator modified by a task.
+		2. Unnamed accumulators(Can't be visible in spark web-UI)
 
-				PySpark by default supports creating an accumulator of any numeric type and provides the capability to add custom accumulator types. 
-Programmers can create following accumulators
+	
+	Notes:
+	1. PySpark by default supports creating an accumulator of any numeric type and provides the capability to add custom accumulator types. 
 
-named accumulators
-unnamed accumulators
-When you create a named accumulator, you can see them on PySpark web UI under the “Accumulator” tab. On this tab, you will see two tables; the first table “accumulable” – consists of all named accumulator variables and their values. And on the second table “Tasks” – value for each accumulator modified by a task.
+	   Ex: you can use an accumulator for a sum operation or counters (in MapReduce). 
 
-Where as unnamed accumulators are not shows on PySpark web UI, For all practical purposes it is suggestable to use named accumulators.
+		
+
 
 PySpark Accumulators are shared variables that can be updated by executors and propagates back to driver program. These variables are used to add sum or counts and final results can be accessed only by driver program.		
 
+	Ex:
 		accum = sc.longAccumulator("SumAccumulator")
-sc.parallelize([1, 2, 3]).foreach(lambda x: accum.add(x))
+		sc.parallelize([1, 2, 3]).foreach(lambda x: accum.add(x))
 
-				note:
-				Broadcast variables (read-only shared variable)
-				Accumulator variables (updatable shared variables)
 
 	
-7. Pyspark SparkFiles
-		Upload file using sc.addFile and get the path on a worker using SparkFiles.get. Thus, SparkFiles resolve the paths to files added through SparkContext.addFile().
+7. Pyspark SparkFiles(Upload file using sc.addFile() and get the path on a worker using SparkFiles.get()) 
+	Ex:
+		SparkContext.addFile().
 
-8. PySpark - StorageLevel(Here we can set the configuration on how should a RDD be stored)
-		StorageLevel decides whether RDD should be stored in the memory or should it be stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions.
 
 9. PySpark - MLlib
 
+
 10. PySpark - Serializers(Serialization is used for performance tuning on Apache Spark,All data that is sent over the network or written to the disk or persisted in the memory should be serialized.)
+
 	MarshalSerializer
 	Serializes objects using Python’s Marshal Serializer. This serializer is faster than PickleSerializer, but supports fewer datatypes.
 	
 	PickleSerializer
-	Serializes objects using Python’s Pickle Serializer. This serializer supports nearly any Python object, but may not be as fast as more specialized serializers.
+	Serializes objects using Python’s Pickle Serializer. This serializer supports nearly any Python object, but may not be as fast as more specialized 		serializers.
 
 Drawbacks of Hive
 It cannot resume processing, which means if the execution fails in the middle of a workflow, you cannot resume from where it got stuck.
