@@ -102,7 +102,24 @@ Note:
 		sc=SparkContext.getOrCreate(conf)
 		
 		from pyspark.sql import SparkSession
-		context= spark.sparkContext.getorCreate() 
+		context= spark.sparkContext.getorCreate()
+	
+	Methods:
+	1. accumulator:-It creates an accumulator variable of a given data type. Only a driver can access accumulator variables.
+	2. applicationId – Returns a unique ID of a Spark application.
+	3. appName – Return an app name that was given when creating SparkContext
+	4. broadcast – read-only variable broadcast to the entire cluster. You can broadcast a variable to a Spark cluster only once.
+	5. emptyRDD – Creates an empty RDD
+	6. getPersistentRDDs – Returns all persisted RDD’s
+	7. getOrCreate – Creates or returns a SparkContext
+	8. hadoopFile – Returns an RDD of a Hadoop file
+	9. master()–  Returns master that set while creating SparkContext
+	10. setLogLevel – Change log level to debug, info, warn, fatal and error
+	11. textFile – Reads a text file from HDFS, local or any Hadoop supported file systems and returns an RDD
+	12. union – Union two RDD’s
+	13. wholeTextFiles – Reads a text file in the folder from HDFS, local or any Hadoop supported file systems and returns an RDD of Tuple2. First element of 	  the tuple consists file name and the second element consists context of the text file.
+
+
 
 	
 
@@ -118,8 +135,13 @@ Note:
 	
 	Ex: 	from pyspark.sql import SparkSession, SQLContext, HiveContext
 		spark= SpakSession.builder.config(config).master("local[*]").AppName("Could be Anything").getorCreate()
+	
+	-----or------
+		spark= SparkSession.newSession()
+		
 		spark.sparkContext.getConf().getAll()#Use to get all the configuration properties of spark or we can use get() method for specific property
 		spark.sparkContext.getConf().get("spark.driver.host")
+		
 
 
 	
