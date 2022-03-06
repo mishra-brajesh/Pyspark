@@ -164,16 +164,20 @@ Note:
 		
 
 
-2. RDD(Resilient Distributed Dataset) 
+2. RDD(Resilient(Able to recover quickly from difficult conditions) Distributed Dataset):-
+	
 	Note:
 	1. RDD Lineage is also known as the RDD operator graph or RDD dependency graph.
 	2. RDD is schema-less without column names and data type(structured and un-structured data).
 	3. RDD cann have a name and it's unique identifier.
 
 	We can create RDD from follwoing ways.
-	1. Parallelize(sc.parallelize())
+	1. Parallelize(sc.parallelize()):- Used when we want to create RDD from existing collection in your driver program.
 	2. From another RDD(Using transformation operation on existing RDD)
 	3. From external system(Text file, HDFS etc)
+		rdd=sc.textFile("c/*")	#Read all the text files within directory and create a single RDD. There should not be any sub-directory otherwise it will 					   through an error.
+		rdd=sc.wholeTextFiles("c/*")	#Reads single or multiple files and returns a single RDD[Tuple2[String, String]], where first value (_1) in a tuple 						    is a file name and second value (_2) is content of the file.
+		
 	4. Dataframe(df.rdd)
 
 	Features of RDD:
@@ -189,15 +193,21 @@ Note:
 
 3. RDD Operations:	
 		Normal:-
-			1. Transaformation 	Ex:flatMap(), map(), reduceByKey(), filter(), sortByKey()
+			1. Transaformation 	
 			
 			Types:	1. Narrow(There will not be any data movement b/w partitions to execute narrow transformation) 
 					Ex:  	 map(), mapPartition(), flatMap(), filter(), union()
 				
-				2. Wide(There will be data movements between partitions to execute wider transformations ) 
-				Note: When compared to Narrow transformations, wider transformations are expensive operations due to shuffling.	
+				2. Wider(There will be data movements between partitions to execute wider transformations) or Shuffle transformation 
+					Ex: 	groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
 				
-					Ex: groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
+			Note: 
+			1. When compared to Narrow transformations, wider transformations are expensive operations due to shuffling of data.	
+				
+			
+			Methods.
+			cache(), filter(),flatmap(),map(), mapPartitions(), mapPartitionsWithIndex(), randomSplit(), union(), sample(), intersection(), distinct(), 			    repartition(), coalesce()
+			
 			
 			2. Action return the values from an RDD to a driver program. 
 					Ex: count(), collect(), first(), max(), reduce()
@@ -224,13 +234,30 @@ Ex:	rdd.repartition(2), rdd.coalesce(2)
 4. PySpark Cache and Persist are optimization techniques to improve the performance of the RDD jobs that are iterative and interactive.
 
    Notes:
-   1. StorageLevel(Here we can set the configuration on how should a RDD be stored. StorageLevel decides whether RDD should be stored in the memory or should it be    stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions).
-		
+   1. cache() method default saves it to memory (MEMORY_ONLY for rdd, MEMORY_AND_DISK` for datafram or datasets because recomputing the in-memory columnar   	representation of the underlying table is expensive.) whereas persist() method is used to store it to the user-defined storage level..
+   2. StorageLevel(Here we can set the configuration on how should a RDD be stored. StorageLevel decides whether RDD should be stored in the memory or should it be    stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions).
+   3. When you persist a dataset, each node stores its partitioned data in memory and reuses them in other actions on that dataset. And Spark’s persisted data on    nodes are fault-tolerant meaning if any partition of a Dataset is lost, it will automatically be recomputed using the original transformations that created it.
+   4. Spark automatically monitors every persist() and cache() calls you make and it checks usage on each node and drops persisted data if not used or using least-recently-used (LRU) algorithm. As discussed in one of the above section you can also manually remove using unpersist() method.
+	5. Spark caching and persistence is just one of the optimization techniques to improve the performance of Spark jobs.
+	6. For RDD cache() default storage level is ‘MEMORY_ONLY‘ but, for DataFrame and Dataset, default is ‘MEMORY_AND_DISK‘
+	7. On Spark UI, the Storage tab shows where partitions exist in memory or disk across the cluster.
+	8. Dataset cache() is an alias for persist(StorageLevel.MEMORY_AND_DISK)
+	9. Caching of Spark DataFrame or Dataset is a lazy operation, meaning a DataFrame will not be cached until you trigger an action. 
 
-PySpark RDD cache() method by default saves RDD computation to storage level `MEMORY_ONLY` meaning it will store the data in the JVM heap as unserialized objects.
+
+Storage Level    Space used  CPU time  In memory  On-disk  Serialized   Recompute some partitions
+----------------------------------------------------------------------------------------------------
+MEMORY_ONLY          High        Low       Y          N        N         Y    
+MEMORY_ONLY_SER      Low         High      Y          N        Y         Y
+MEMORY_AND_DISK      High        Medium    Some       Some     Some      N
+MEMORY_AND_DISK_SER  Low         High      Some       Some     Y         N
+DISK_ONLY            Low         High      N          Y        Y         N
+
 
 Ex:
 	import pyspark
+	rddcache = rdd.cache()
+	rddPersist = rdd.persist() # Here we have two diff signature for persist method. by-defult it will be MEMORY_AND_DISK
 	rddPersist = rdd.persist(pyspark.StorageLevel.MEMORY_ONLY)
 	rddPersist.show(false)
 
