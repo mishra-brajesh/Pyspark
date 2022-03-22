@@ -4,7 +4,7 @@ Spark is written in Scala and later on due to its industry adaptation it’s API
 
 
 Apache Spark Features:-
-Real time processing framework
+time processing framework
 In-memory computation
 Parallel distributed processing
 Can be used with many cluster managers (Spark, Yarn, Mesos e.t.c)
@@ -25,7 +25,7 @@ R, Python, Scala, java---Apache spark core API(Resposible for basic i/o function
 Cluster Manager Types
 Standalone – a simple cluster manager included with Spark that makes it easy to set up a cluster.
 Apache Mesos – Mesons is a Cluster manager that can also run Hadoop MapReduce and PySpark applications.
-Hadoop YARN – the resource manager in Hadoop 2. This is mostly used, cluster manager.
+Hadoop YARN(Yet Another Resource Negotiator)  – the resource manager in Hadoop 2. This is mostly used, cluster manager.
 Kubernetes – an open-source system for automating deployment, scaling, and management of containerized applications.
 local – which is not really a cluster manager but still I wanted to mention as we use “local” for master() in order to run Spark on your laptop/computer.
 
@@ -109,7 +109,7 @@ Note:
 	2. applicationId – Returns a unique ID of a Spark application.
 	3. appName – Return an app name that was given when creating SparkContext
 	4. broadcast – read-only variable broadcast to the entire cluster. You can broadcast a variable to a Spark cluster only once.
-	5. emptyRDD – Creates an empty RDD
+	5. emptyRDD() – Creates an empty RDD
 	6. getPersistentRDDs – Returns all persisted RDD’s
 	7. getOrCreate – Creates or returns a SparkContext
 	8. hadoopFile – Returns an RDD of a Hadoop file
@@ -173,17 +173,24 @@ Note:
 
 	We can create RDD from follwoing ways.
 	1. Parallelize(sc.parallelize()):- Used when we want to create RDD from existing collection in your driver program.
-	2. From another RDD(Using transformation operation on existing RDD)
+		Ex:
+		rdd=sc.parallelize([1,2,3,4,5])#returns a rdd from existing list having no of partition equal to the number of CPU cores.
+		rdd=sc.parallelize([1,2,3,4,5], 5)#returns a rdd from existing list having no of partition equal to 5.
+		
+	2. From another RDD or dataframe(Using transformation operation on existing RDD)
+		Ex:
+		rdd= df.rdd #returns a rdd from dataframe
 	3. From external system(Text file, HDFS etc)
 		rdd=sc.textFile("c/*")	#Read all the text files within directory and create a single RDD. There should not be any sub-directory otherwise it will 					   through an error.
+		rdd=sc.textFile("c/*",5)#RDD with 5 partitons
 		rdd=sc.wholeTextFiles("c/*")	#Reads single or multiple files and returns a single RDD[Tuple2[String, String]], where first value (_1) in a tuple 						    is a file name and second value (_2) is content of the file.
-		
-	4. Dataframe(df.rdd)
+		rdd=sc.wholeTextFiles("c/*",5)#RDD with 5 partitons
+	
 
 	Features of RDD:
 	1. In memory computation
 	2. Lazy evaluation
-	3. Fault tolerant
+	3. Fault tolerant(PySpark task failures are automatically recovered for a certain number of times as per the configuration)
 	4. Immutability
 	5. Partioning(RDD is divided into logical sub parts): Can be changeable
 	6. Persistance(RDD can be reused and can choose the storage stratgy)
@@ -193,23 +200,33 @@ Note:
 
 3. RDD Operations:	
 		Normal:-
-			1. Transaformation 	
+			1. Transaformation: Return the new RDD	
 			
 			Types:	1. Narrow(There will not be any data movement b/w partitions to execute narrow transformation) 
 					Ex:  	 map(), mapPartition(), flatMap(), filter(), union()
 				
 				2. Wider(There will be data movements between partitions to execute wider transformations) or Shuffle transformation 
-					Ex: 	groupByKey(), aggregateByKey(), aggregate(), join(), repartition()
+					Ex: 	groupByKey(), aggregateByKey(), aggregate(), join(), repartition(), coalesce(), reduceByKey(), cogroup() 
+					Note:
+					PySpark Shuffle is an expensive operation since it involves the following
+					1. Disk I/O
+					2. Involves data serialization and deserialization
+					3. Network I/O
+					
+					
 				
 			Note: 
-			1. When compared to Narrow transformations, wider transformations are expensive operations due to shuffling of data.	
+			1. When compared to Narrow transformations, wider transformations are expensive operations due to shuffling of data.
+			2. When you dealing with less amount of data, you should typically reduce the shuffle partitions otherwise you will end up with 			many partitioned files with less number of records in each partition. which results in running many tasks with lesser data to 				process.
+			3. when you have too much of data and having less number of partitions results in fewer longer running tasks and some times you 			may also get out of memory error.
+			4. Getting the right size of the shuffle partition is always tricky and takes many runs with different values to achieve the 				optimized number. This is one of the key properties to look for when you have performance issues on PySpark jobs.
 				
 			
 			Methods.
-			cache(), filter(),flatmap(),map(), mapPartitions(), mapPartitionsWithIndex(), randomSplit(), union(), sample(), intersection(), distinct(), 			    repartition(), coalesce()
+			cache(), filter(),flatmap(),map(), mapPartitions(), mapPartitionsWithIndex(), randomSplit(), union(), sample(), intersection(), 			distinct(), repartition(), coalesce()
 			
 			
-			2. Action return the values from an RDD to a driver program. 
+			2. Action: return the values from an RDD to a driver program. 
 					Ex: count(), collect(), first(), max(), reduce()
 	
 		Pair RDD Function(RDD with keyvalue pair):-
@@ -219,30 +236,40 @@ Note:
 
 			Ex:
 			
-3. Repartition and Coalesce: We can change the number of partition of RDD at run time using rdd.repartition()- Suffle data from all the nodes, rdd.coalesce()- Suffle data from min number of node.
+3. Repartition and Coalesce Transformation: We can change the number of partition of RDD/Dataframe/Datasets at run time using 
+rdd.repartition(numberOfPartition)/df.repartition(numberOfPartition)- To Increase/Decrease the number of partition. 
+rdd.coalesce(numberOfPartition)/df.coalesce(numberOfPartition)- To Decrease the number of partition. 
 
-Note: 
-	1. repartition() or coalesce() methods also returns a new RDD.
-
-Calling groupBy(), union(), join() and similar functions on DataFrame results in shuffling data between multiple executors and even machines and finally repartitions data into 200 partitions by default. PySpark default defines shuffling partition to 200 using spark.sql.shuffle.partitions configuration.
+Calling shuffle transformation on DataFrame results in shuffling data between multiple executors and even machines and finally repartitions data into 200 partitions by default. PySpark default defines shuffling partition to 200 using spark.sql.shuffle.partitions configuration.
 spark.conf.set("spark.sql.shuffle.partitions", "500")
+df = df.groupBy("id").count()
+print(df4.rdd.getNumPartitions())#return 200 bydefault
 
-Ex:	rdd.repartition(2), rdd.coalesce(2)
+Ex:	
+rdd.getNumPartitions()#return the current number of partioin of an RDD.
+df.rdd.getNumPartitions()#return the current number of partioin of an dataframe.
+
+
+Note:
+1. PySpark repartition() and coalesce() are very expensive operations as they shuffle the data across many partitions hence try to minimize using these as much as possible.
 
 
 
 4. PySpark Cache and Persist are optimization techniques to improve the performance of the RDD jobs that are iterative and interactive.
 
    Notes:
-   1. cache() method default saves it to memory (MEMORY_ONLY for rdd, MEMORY_AND_DISK` for datafram or datasets because recomputing the in-memory columnar   	representation of the underlying table is expensive.) whereas persist() method is used to store it to the user-defined storage level..
-   2. StorageLevel(Here we can set the configuration on how should a RDD be stored. StorageLevel decides whether RDD should be stored in the memory or should it be    stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions).
-   3. When you persist a dataset, each node stores its partitioned data in memory and reuses them in other actions on that dataset. And Spark’s persisted data on    nodes are fault-tolerant meaning if any partition of a Dataset is lost, it will automatically be recomputed using the original transformations that created it.
-   4. Spark automatically monitors every persist() and cache() calls you make and it checks usage on each node and drops persisted data if not used or using least-recently-used (LRU) algorithm. As discussed in one of the above section you can also manually remove using unpersist() method.
-	5. Spark caching and persistence is just one of the optimization techniques to improve the performance of Spark jobs.
-	6. For RDD cache() default storage level is ‘MEMORY_ONLY‘ but, for DataFrame and Dataset, default is ‘MEMORY_AND_DISK‘
-	7. On Spark UI, the Storage tab shows where partitions exist in memory or disk across the cluster.
-	8. Dataset cache() is an alias for persist(StorageLevel.MEMORY_AND_DISK)
-	9. Caching of Spark DataFrame or Dataset is a lazy operation, meaning a DataFrame will not be cached until you trigger an action. 
+   1. cache() method default saves it to memory (MEMORY_ONLY for rdd(meaning it will store the data in the JVM heap as unserialized objects), 		MEMORY_AND_DISK` for datafram or datasets because recomputing the in-memory columnar representation of the underlying table is expensive) whereas persist() method is used to store it to the user-defined storage level.
+   
+   2. StorageLevel(Here we can set the configuration on how should a RDD be stored. StorageLevel decides whether RDD should be stored in the memory or should it be  stored over the disk, or both. It also decides whether to serialize RDD and whether to replicate RDD partitions).
+   
+   3. When you persist a dataset, each node stores its partitioned data in memory and reuses them in other actions on that dataset. And Spark’s persisted data on nodes are fault-tolerant meaning if any partition of a Dataset is lost, it will automatically be recomputed using the original transformations that created it.
+   
+   4. Spark automatically monitors every persist() and cache() calls you make and it checks usage on each node and drops persisted data if not used or using least-recently-used (LRU) algorithm. we can also manually remove using rdd.unpersist() method.
+
+   5. Spark caching and persistence is just one of the optimization techniques to improve the performance of Spark jobs.
+   6. On Spark UI, the Storage tab shows where partitions exist in memory or disk across the cluster.
+   7. Dataset cache() internally call persist(pyspark.StorageLevel.MEMORY_AND_DISK)
+   8. Caching of Spark DataFrame or Dataset is a lazy operation, meaning a DataFrame will not be cached until you trigger an action. 
 
 
 Storage Level    Space used  CPU time  In memory  On-disk  Serialized   Recompute some partitions
@@ -252,28 +279,47 @@ MEMORY_ONLY_SER      Low         High      Y          N        Y         Y
 MEMORY_AND_DISK      High        Medium    Some       Some     Some      N
 MEMORY_AND_DISK_SER  Low         High      Some       Some     Y         N
 DISK_ONLY            Low         High      N          Y        Y         N
+MEMORY_ONLY_2  	     Low         High      Some       Some     Y         N
+MEMORY_AND_DISK_2    Low         High      N          Y        Y         N
 
 
 Ex:
 	import pyspark
 	rddcache = rdd.cache()
-	rddPersist = rdd.persist() # Here we have two diff signature for persist method. by-defult it will be MEMORY_AND_DISK
+	rddPersist = rdd.persist() # Here we have two diff signature for persist method. by-defult it will be MEMORY_ONLY
 	rddPersist = rdd.persist(pyspark.StorageLevel.MEMORY_ONLY)
-	rddPersist.show(false)
+	
 
 
 5. Dataframe(DataFrame is a distributed collection of data organized into named columns(With inbulit richer optimizations)
 
 	Note:
-	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in		PySpark executes in parallel on all machines.
+	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in PySpark executes in parallel on all machines.
 	2. Datframe can be created from follwoing ways.
 		RDD, Python list, External sources(DataFrame has a rich set of API which supports reading and writing several file formats)
+		
+	Ex:
+	df= rdd.toDF() #return a dataframe with columns name as _1 or _2.
+	df= rdd.toDF('col1','col2') #For a RDD(list of tuple of two elements)return a dataframe with columns name as col1 or col2.
+		Note: 
+		1. By default, the datatype of these columns infers to the type of data. We can change this behavior by supplying schema, where we can 			specify a column name, data type, and nullable for each field/column.
+	df =spark.dataframe(rdd).toDF("col1","col2")#### Needs to check
+	
 	3. Process structured, semi-structured  and unstructured data.
-	4. DataFrames can be constructed from a wide array of sources such as structured data files, tables in Hive, external databases, or existing RDDs
+	4. 
+
 	
 	Example:
-		df.show()#By-Default it will show only top 20 rows or we can pass the integer(No. of rows from dataframe) value in parenthesis.
-		df.printschema()
+		df.show() // Show 20 rows & 20 characters for columns
+		df.show(50) // Show 50 rows
+		df.show(false) // Show 20 rows with full column value
+		df.show(50,false) // Show 50 rows & full column value
+		df.show(20,20,true) // Show 20 rows, column length 20 & displays data in vertical
+		df.printschema() #it will print the schema
+		Output:	root
+				|-- _1: string (nullable = true)
+ 				|-- _2: string (nullable = true)
+			
 	
 	Features:
 	1. Immutability
@@ -359,6 +405,10 @@ The fundamental stream unit is Dstream(Discretized stream) which is basically a 
 				broadcastVar = sc.broadcast([0, 1, 2, 3])
 				broadcastVar.value
 				
+	Note:
+	1. Broadcast variables are not sent to executors with sc.broadcast(variable) call instead, they will be sent to executors when they are first 		used(broadcastVar.value)
+	
+				
 2. Accumaltor(Updatable shared variables): Accumulator variables are used for aggregating the information through associative and commutative operations.
 	
 	Types:
@@ -370,8 +420,8 @@ The fundamental stream unit is Dstream(Discretized stream) which is basically a 
 	
 	Notes:
 	1. PySpark by default supports creating an accumulator of any numeric type and provides the capability to add custom accumulator types. 
-
-	   Ex: you can use an accumulator for a sum operation or counters (in MapReduce). 
+	2. PySpark by default provides accumulator methods for long, double and collection types.
+	
 
 		
 
@@ -412,3 +462,7 @@ It is limited to the subquery support.
 Question:
 1. What is spark?- Spark is open source ,Scalable , Parllel ,In-memory enviornment of analytics engine.
 2. Why dataset is faster than the dataframe ?- b/e dataset has implemented a encoder mechanism
+3. Why we need RDD or Pyspark RDD limitation?
+4. Read a CSV file with two column as RDD and check is it list of tuple of two elements?
+5. Read a text file with two column as RDD and check is it list of tuple of two elements?
+
