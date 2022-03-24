@@ -296,17 +296,18 @@ Ex:
 	Note:
 	1. PySpark DataFrames are distributed in the cluster (meaning the data in DataFrame’s are stored in different machines in a cluster) and any operations in PySpark executes in parallel on all machines.
 	2. Datframe can be created from follwoing ways.
-		RDD, Python list, External sources(DataFrame has a rich set of API which supports reading and writing several file formats)
+		RDD, Dataframe, Python list, External sources(DataFrame has a rich set of API which supports reading and writing several file formats)
 		
 	Ex:
 	df= rdd.toDF() #return a dataframe with columns name as _1 or _2.
-	df= rdd.toDF('col1','col2') #For a RDD(list of tuple of two elements)return a dataframe with columns name as col1 or col2.
+	df= rdd.toDF(['col1','col2']) #For a RDD(list of tuple of two elements)return a dataframe with columns name as col1 or col2.
 		Note: 
 		1. By default, the datatype of these columns infers to the type of data. We can change this behavior by supplying schema, where we can 			specify a column name, data type, and nullable for each field/column.
-	df =spark.dataframe(rdd).toDF("col1","col2")#### Needs to check
+	df = spark.dataframe(rdd).toDF("col1","col2")#### Needs to check
+	df = df.toDF("col1","col2")#convert the dataframe into dataframe with column name as passed name 
 	
 	3. Process structured, semi-structured  and unstructured data.
-	4. 
+	
 
 	
 	Example:
